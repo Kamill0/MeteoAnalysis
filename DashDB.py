@@ -124,11 +124,13 @@ class DashDB:
 
 
     # Function to Insert data to the created table
-    def dbInsert(self, tablename, emailid, password, username, dateofcreation):
+    def dbInsert(self, tablename, values):
         self.connectioncheck_handler()
         try:
-            insert_query = "INSERT INTO " + self.DatabaseSchema + "." + tablename + " VALUES (DEFAULT,\'" + emailid + "\',\'" + password + "\',\'" + username + "\',\'" + str(
-                dateofcreation) + "\')"
+            insert_query = "INSERT INTO " + self.DatabaseSchema + "." + tablename + " VALUES (DEFAULT"
+            for value in values:
+                insert_query += ",\'" + value + "\'"
+            insert_query += ")"
             statement = ibm_db.exec_immediate(self.connection, insert_query)
             ibm_db.free_stmt(statement)
 
@@ -206,10 +208,8 @@ if __name__ == '__main__':
     db = DashDB()
     db.connectionInit()
 
-    create_retrn = db.dbCreate("USERTABLE", {"name": "VARCHAR(20) NOT NULL", "age": "VARCHAR(20)"})
+    #create_retrn = db.dbCreate("USERTABLE", {"name": "VARCHAR(20) NOT NULL", "age": "VARCHAR(20)"})
+    #insert_val = db.dbInsert("USERTABLE", ["Kamil", "22"])
 
-    if create_retrn == True:
-        print "\t\t TABLE CREATED SUCCESSFULLY"
-    else:
-        print "\t\t TABLE CREATE FAILED"
+    print(db.dbFetch("USERTABLE"))
 
