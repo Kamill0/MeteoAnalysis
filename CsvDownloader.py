@@ -47,7 +47,7 @@ class CSVDownloader:
 
     def printData(self):
         for row in self.cr:
-            print row
+            print row['utc']
 
     # selected data for all available stations [JSON]
     def getAllStations(self):
