@@ -19,6 +19,7 @@ class DashDB:
         self.password = "ac6488d7b729"
         self.hostname = "dashdb-entry-yp-lon02-01.services.eu-gb.bluemix.net"
         self.portnumber = "50000"
+
     def connectionInit(self):
         self.databaseConnectionInfo = {"Database name": "BLUDB", "User ID": self.userid, "Password": self.password,
                                        "Host name": self.hostname, "Port number": self.portnumber}
@@ -56,14 +57,14 @@ class DashDB:
                 dbtry += 1
 
                 # Function to close the dashdb connection
-        def dbclose(self):
+    def dbclose(self):
 
-            try:
-                retrn = ibm_db.close(self.connection)
-                return retrn
-            except Exception as dbcloseerror:
-                logging.error("dbclose Exception %s" % (dbcloseerror))
-                return False
+        try:
+            retrn = ibm_db.close(self.connection)
+            return retrn
+        except Exception as dbcloseerror:
+            logging.error("dbclose Exception %s" % (dbcloseerror))
+            return False
 
     # Function to check whether the connection is alive or not
     def connectioncheck_handler(self):
@@ -86,11 +87,15 @@ class DashDB:
             logging.error("The connectioncheck_handler error is %s" % (e))
 
     # Function to create the Table
-    def dbCreate(self, tablename, col1, col2, col3, col4, col5):
+    def dbCreate(self, tablename, cols = {}):
         self.connectioncheck_handler()
 
         try:
-            create_query = "CREATE TABLE " + tablename + " (" + col1 + " INT GENERATED ALWAYS AS IDENTITY (START WITH 1 INCREMENT BY 1 MINVALUE 1 NO MAXVALUE NO CYCLE NO CACHE ORDER)," + col2 + " VARCHAR(30) NOT NULL," + col3 + " VARCHAR(30) NOT NULL," + col4 + " VARCHAR(30) NOT NULL," + col5 + " TIMESTAMP NOT NULL, PRIMARY KEY(" + col2 + "," + col3 + "))ORGANIZE BY ROW;"
+            create_query = "CREATE TABLE " + tablename + " ( id INT GENERATED ALWAYS AS IDENTITY (START WITH 1 INCREMENT BY 1 MINVALUE 1 NO MAXVALUE NO CYCLE NO CACHE ORDER),"
+            for key, value in cols.iteritems():
+                create_query += key + " " + value + ","
+
+            create_query += " PRIMARY KEY(id))ORGANIZE BY ROW;"
             statement = ibm_db.exec_immediate(self.connection, create_query)
             ibm_db.free_stmt(statement)
 
@@ -101,6 +106,22 @@ class DashDB:
             logging.error("The dbCreate operation error is %s" % (ibm_db.stmt_errormsg()))
             return False
         return True
+
+    def dbDrop(self, tablename):
+        self.connectioncheck_handler()
+        try:
+            create_query = "DROP TABLE " + tablename + ";"
+            statement = ibm_db.exec_immediate(self.connection, create_query)
+            ibm_db.free_stmt(statement)
+
+        except Exception as e:
+            logging.error("The dbDrop operation error is %s" % (e))
+            return False
+        except:
+            logging.error("The dbDrop operation error is %s" % (ibm_db.stmt_errormsg()))
+            return False
+        return True
+
 
     # Function to Insert data to the created table
     def dbInsert(self, tablename, emailid, password, username, dateofcreation):
@@ -181,16 +202,12 @@ class DashDB:
 
 
 if __name__ == '__main__':
+    # how to use the api:
     db = DashDB()
     db.connectionInit()
 
-    tablename = "USERTABLE"
-    col1 = "ID"
-    col2 = "EMAILID"
-    col3 = "PASSWORD"
-    col4 = "USERNAME"
-    col5 = "DATEOFCREATION"
-    create_retrn = db.dbCreate(tablename, col1, col2, col3, col4, col5)
+    create_retrn = db.dbCreate("USERTABLE", {"name": "VARCHAR(20) NOT NULL", "age": "VARCHAR(20)"})
+
     if create_retrn == True:
         print "\t\t TABLE CREATED SUCCESSFULLY"
     else:

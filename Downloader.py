@@ -3,7 +3,7 @@ import urllib2
 import json
 
 
-class CSVDownloader:
+class Downloader:
     BASEURL = 'http://mech.fis.agh.edu.pl/meteo/rest/'
 
     def __init__(self, station="", typeOfMeasurement="", dateFrom="", dateTo="", dateStats=""):
@@ -14,21 +14,17 @@ class CSVDownloader:
         self.dateStats = dateStats
         self.cr = None
 
+    # gets rid off the unicode sign in json
     def _byteify(self, data, ignore_dicts=False):
-        # if this is a unicode string, return its string representation
         if isinstance(data, unicode):
             return data.encode('utf-8')
-        # if this is a list of values, return list of byteified values
         if isinstance(data, list):
             return [self._byteify(item, ignore_dicts=True) for item in data]
-        # if this is a dictionary, return dictionary of byteified keys and values
-        # but only if we haven't already byteified it
         if isinstance(data, dict) and not ignore_dicts:
             return {
                 self._byteify(key, ignore_dicts=True): self._byteify(value, ignore_dicts=True)
                 for key, value in data.iteritems()
                 }
-        # if it's anything else, return it in its original form
         return data
 
     def json_loads_byteified(self, json_text):
@@ -47,7 +43,7 @@ class CSVDownloader:
 
     def printData(self):
         for row in self.cr:
-            print row['utc']
+            print row
 
     # selected data for all available stations [JSON]
     def getAllStations(self):
@@ -86,6 +82,6 @@ class CSVDownloader:
 
 
 if __name__ == '__main__':
-    cs = CSVDownloader('s000', 'temp', '2017-01-01', '2017-01-10')
+    cs = Downloader('s000', 'temp', '2017-01-01', '2017-01-10')
     cs.historicalJSON()
     cs.printData()
