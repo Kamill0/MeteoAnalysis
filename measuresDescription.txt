@@ -1,0 +1,27 @@
+Opis wielkosci
+
+# time - czas pomiaru
+# utc - czas pomiaru z stacji meterologicznej w strefie czasowej UTC
+# station - identyfikator stacji
+# p0 - ciśnienie na poziomie morza
+# ta - temperatura
+# t0 - temperatura punktu rosy
+# ha - wilgotność
+# r1 - opad w ostaniej godzinie
+# ra - opad
+# wd - kierunek wiatru
+# ws - prędkość wiatru
+# wg - chwilowa prędkość wiatru
+# h0 - wysokość nad poziom morza
+
+
+Parametr typeOfMeasurement:
+
+# pres0 - średnia wartość ciśnienia na poziomie morza w przedziale godzinnym,
+# temp - średnia wartość temperatury w przedziale godzinnym,
+# temp0 - średnia wartość temperatury punktu rosy w przedziale godzinnym,
+# humi - średnia wartość wilgotności w przedziale godzinnym,
+# rain1 - opad w ciągu ostatniej godziny,
+# windd - histogram częstości kierunków wiatru w przedziałach co 30 stopni w przedziale godzinnym,
+# winds - wartość średnia prędkości wiatru w przedziale godzinnym
+# windg - maksymalna wartość prędkości wiatru w przedziale godzinnym
