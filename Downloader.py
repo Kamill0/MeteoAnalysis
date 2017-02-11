@@ -43,7 +43,7 @@ class Downloader:
 
     def printData(self):
         for row in self.cr:
-            print row
+            print row['data']['ta']
 
     # selected data for all available stations [JSON]
     def getAllStations(self):
@@ -64,6 +64,7 @@ class Downloader:
     def historicalJSON(self):
         historicalJsonUrl = self.BASEURL + 'json/' + self.typeOfMeasurement + '/' + self.station + '/' + self.dateFrom + '/' + self.dateTo
         self.downloadData(historicalJsonUrl)
+        return self.cr
 
     # historical data for specific station [CSV]
     def historicalCSV(self):
