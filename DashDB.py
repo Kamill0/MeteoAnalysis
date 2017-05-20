@@ -15,8 +15,8 @@ logging.basicConfig(filename=LOG_FILENAME,level=logging.DEBUG,format='%(asctime)
 class DashDB:
     def __init__(self):
         self.connection = None
-        self.userid = "dash5772"
-        self.password = "ac6488d7b729"
+        self.userid = "dash9493"
+        self.password = "lJnTTc@P$07z"
         self.hostname = "dashdb-entry-yp-lon02-01.services.eu-gb.bluemix.net"
         self.portnumber = "50000"
 
@@ -211,5 +211,7 @@ if __name__ == '__main__':
     #create_retrn = db.dbCreate("USERTABLE", {"name": "VARCHAR(20) NOT NULL", "age": "VARCHAR(20)"})
     #insert_val = db.dbInsert("USERTABLE", ["Kamil", "22"])
 
-    print(db.dbFetch("USERTABLE"))
+
+
+    #print(db.dbFetch("USERTABLE"))
 

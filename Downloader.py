@@ -35,6 +35,9 @@ class Downloader:
 
     def downloadData(self, webendpoint):
         response = urllib2.urlopen(webendpoint).read()
+        if not response:
+            print("Response was empty")
+            return
         self.cr = self.json_loads_byteified(response)
 
     def downloadAsCSVData(self, webendpoint):
@@ -49,11 +52,13 @@ class Downloader:
     def getAllStations(self):
         allStationsUrl = self.BASEURL + 'json/info/'
         self.downloadData(allStationsUrl)
+        return self.cr
 
     # all data for a specific station [JSON]
     def getDetailedStation(self):
         detailedStationUrl = self.BASEURL + 'json/desc/' + self.station
         self.downloadData(detailedStationUrl)
+        return self.cr
 
     # current data for specific station (last 10 measures)
     def currentDataStation(self):
@@ -83,6 +88,6 @@ class Downloader:
 
 
 if __name__ == '__main__':
-    cs = Downloader('s000', 'temp', '2017-01-01', '2017-01-10')
-    cs.historicalJSON()
-    cs.printData()
+    cs = Downloader('s000', 'temp', '2017-05-20', '2017-05-20')
+    print cs.getAllStations()
+    #cs.printData()
