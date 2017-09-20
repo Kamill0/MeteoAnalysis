@@ -84,7 +84,7 @@ class Downloader:
         except urllib2.URLError as e:
             print(type(e))  # not catch
         except socket.timeout as e:
-            print(type(e))  # catched
+            print(type(e))  # caught
             raise MyException("There was an error: %r" % e)
 
     def downloadData(self, webendpoint):

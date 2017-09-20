@@ -1,5 +1,5 @@
 library(AnomalyDetection)
-
+require(scales)
 # Will look for anomalies in the collected measurements using Twitter's Anomaly Detection library
 
 dataDir = "C:\\Users\\kamil_000\\PycharmProjects\\MeteoAnalysis\\Data"
@@ -14,7 +14,6 @@ for(station in stations){
     for(month in months){
       filePath = paste(subSubDir,month,sep="\\")
       print(filePath)
-      #detectAnomalies(filePath)
       
       dat = read.csv(file=filePath, header = FALSE)
       colnames(dat) <- c('time','timeDiscarded','value')
