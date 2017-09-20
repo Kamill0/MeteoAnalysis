@@ -12,6 +12,18 @@ class MyException(Exception):
 class Downloader:
     BASEURL = 'http://mech.fis.agh.edu.pl/meteo/rest/'
 
+    type_of_measurements = [
+        'pres0',
+        'temp',
+        'temp0',
+        'humi',
+        'rain1',
+        'rain',
+        'windd',
+        'winds',
+        'windg'
+    ]
+
     station_coordinates = {
         's000': ("50.0670", "19.9129"),
         's001': ("50.0618", "19.9291"),
@@ -94,8 +106,8 @@ class Downloader:
             rows.append(row)
 
         if len(rows) != 0:
-            filename = self.station + "_" + self.start + "_" + self.end
-            dirname = "Data/" + self.station
+            filename = self.station + "_" + self.typeOfMeasurement + "_" + self.start + "_" + self.end
+            dirname = "Data/" + self.station + "/" + self.typeOfMeasurement
             if not os.path.exists(dirname):
                 os.makedirs(dirname)
 
@@ -170,16 +182,12 @@ class Downloader:
 
 if __name__ == '__main__':
     coordinates = Downloader.station_coordinates
+    tom = Downloader.type_of_measurements
 
     for k in coordinates:
         print(k)
-        cs = Downloader(k, 'temp', '2017-07-01', '2017-07-31')
-        cs.historicalCSV()
-
-
-
-
-
-
-
+        for t in tom:
+            print(t)
+            cs = Downloader(k, t, '2017-01-01', '2017-07-31', monthly = True)
+            cs.historicalCSV()
     #cs.printData()

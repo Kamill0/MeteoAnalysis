@@ -1,21 +1,54 @@
 library(AnomalyDetection)
 
-#data(raw_data)
-#res = AnomalyDetectionTs(raw_data, max_anoms=0.02, direction='both', plot=TRUE)
-#res$plot
+# Will look for anomalies in the collected measurements using Twitter's Anomaly Detection library
 
-dat = read.csv(file="C:\\Users\\kamil_000\\PycharmProjects\\MeteoAnalysis\\Data\\2017-07-31.csv", header = FALSE)
-colnames(dat) <- c('time','time_meh','temp')
-dat <- dat[ -c(2)]
-dat$time <- as.POSIXct(paste(dat$time), format="%Y-%m-%d %H:%M:%S")
-dat <- dat[!duplicated(dat),]
-dat$temp[1] = dat$temp[1]*2  #fake anomaly creation <- it works, yay 
-res = AnomalyDetectionTs(dat, max_anoms=0.02, direction='both', plot=TRUE)
-if (is.null(res$plot)){
-  print("No anomalies detected, nothing to plot here")
-} else {
-  res$plot
+dataDir = "C:\\Users\\kamil_000\\PycharmProjects\\MeteoAnalysis\\Data"
+anomalyDir = paste(dataDir, "DetectedAnomalies", sep = "\\")
+stations = list.files(dataDir)
+for(station in stations){
+  subDir = paste(dataDir,station,sep = "\\")
+  typeOfMeasurment = list.files(subDir)
+  for(measurement in typeOfMeasurment){
+    subSubDir = paste(subDir,measurement,sep = "\\")
+    months = list.files(subSubDir)
+    for(month in months){
+      filePath = paste(subSubDir,month,sep="\\")
+      print(filePath)
+      #detectAnomalies(filePath)
+      
+      dat = read.csv(file=filePath, header = FALSE)
+      colnames(dat) <- c('time','timeDiscarded','value')
+      dat <- dat[ -c(2)]
+      dat$time <- as.POSIXct(paste(dat$time), format="%Y-%m-%d %H:%M:%S")
+      dat <- dat[!duplicated(dat),]
+      #dat$value[1] = dat$value[1]*2  #fake anomaly creation <- it works, yay
+      dat <- na.omit(dat)
+      bol = is.na(dat)
+      tryCatch(
+        {
+          res = AnomalyDetectionTs(dat, max_anoms=0.02, direction='both', plot=TRUE, na.rm = TRUE)
+          if (is.null(res$plot)){
+            # print("No anomalies detected, nothing to plot here")
+            # do something here, print is useless
+          } else {
+            fileName = paste(sapply(strsplit(filePath,split='\\',fixed=TRUE), tail, 1),".png", sep="")
+            path = paste(anomalyDir,fileName,sep="\\")
+            png(filename=path)
+            plot(res$plot + ylab(measurement) + scale_x_datetime(breaks = date_breaks("10 days"), labels=date_format("%Y-%m-%d"), limits=xlim))
+            dev.off()
+          }
+        }, error = function(e) {
+          message("Here's the original error message: ")
+          message(e)
+          message(paste("\nfor:", fileName)) 
+        }
+      )
+    }
+  }
 }
+
+
+
 
 
 
