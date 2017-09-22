@@ -6,13 +6,20 @@ class NoaaParser:
         self.path = path
 
     def parseFile(self):
-        text_file = open("DataNOAA/processed/" + self.path + ".csv", "wb")
-        writer = csv.writer(text_file, delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
+        basePath = "DataNOAA/processed/"
+        textFiles = {}
+        writers = {}
+        #writer = csv.writer(text_file, delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
 
         with open("DataNOAA/source/" + self.path) as f:
             prev = ""
             for line in f:
                  dt = datetime.strptime(line[15:27], '%Y%m%d%H%M%S')
+                 fileName = str(dt.year) + "-" + str(dt.month)
+                 if fileName not in textFiles and fileName not in writers:
+                     textFiles[fileName] = open(basePath + "/temp_" + fileName + ".csv", "wb")
+                     writers[fileName] = csv.writer(textFiles.get(fileName), delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
+                 writer = writers.get(fileName)
                  airtemp_sign = line[87:88]
                  airtemp_value = float(line[88:92])/10
                  if airtemp_sign == "-":
@@ -23,7 +30,8 @@ class NoaaParser:
                      #print(dt)
                      prev = dt
                      writer.writerow([dt, airtemp_value])
-            text_file.close()
+            for k,v in textFiles.iteritems():
+                v.close()
 
 
 if __name__ == '__main__':
