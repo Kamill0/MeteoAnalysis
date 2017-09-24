@@ -7,3 +7,5 @@ colnames(wfiisDF) <- c('time','value')
 
 noaaDF = read.csv(file=noaaPath, header = FALSE)
 colnames(noaaDF) <- c('time','value')
+
+merged = merge(wfiisDF, noaaDF, by = "time")
