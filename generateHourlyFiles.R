@@ -1,21 +1,28 @@
 
 require(scales)
-# Will look for anomalies in the collected measurements using Twitter's Anomaly Detection library
+# This script takes WFiIS data and produces a file with hourly results 
 
 produceHourlyResults <- function(procFile, destDir) {
   dat = read.csv(file=procFile, header = FALSE)
   colnames(dat) = c("time", "timeDiscarded", "value")  
   
-  createdDir = ifelse(!dir.exists(test1), dir.create(test1), FALSE)
+  outputDataFrame = setNames(data.frame(matrix(ncol = 2, nrow = 0)), c("time", "value"))
+  
+  
+  hourlyDir = paste(destDir, "hourlyR", sep = "\\")
+  createdDir = ifelse(!dir.exists(hourlyDir), dir.create(hourlyDir), FALSE)
+  outFileName = paste("h", sapply(strsplit(procFile,split='\\',fixed=TRUE), tail, 1), sep="_")
+  outCsvPath = paste(hourlyDir, outFileName, sep = "\\")
   
   # we are reading the first line from the file in order to set some variables:
   firstRow = dat[1,]
   dt1 = as.POSIXct(dat$time[1],format="%Y-%m-%d %H:%M:%S",tz=Sys.timezone())
   curHour = format(dt1, "%H")
-  curDat = forma(dt1, "%d")
+  curDay = format(dt1, "%d")
   sum = 0
   counter = 0
   prevVal = 0
+
   
   for (i in 2:nrow(dat)){
     dt = as.POSIXct(dat$time[i],format="%Y-%m-%d %H:%M:%S",tz=Sys.timezone())
@@ -25,12 +32,35 @@ produceHourlyResults <- function(procFile, destDir) {
       sum = sum + ifelse(!is.na(val), val, prevVal)
       counter = counter + 1
     } else {
+      newDtDateStr = paste(format(dt, "%Y"), format(dt, "%m"), curDay, sep = "-")
+      newDtTimeStr = paste(format(dt, "%H"), "00", "00", sep = ":")
+      newDt = as.POSIXct(paste(newDtDateStr, newDtTimeStr), format="%Y-%m-%d %H:%M:%S",tz=Sys.timezone())
+      
+      curHour = format(dt, "%H")
+      curDay = format(dt, "%d")
+      
+      if (counter == 0) {
+        outputDataFrame <- rbind(outputDataFrame, data.frame("time" = newDt, "value" = 0))
+      } else {
+        val = as.numeric(format((as.numeric(sum) / as.numeric(counter)), digits=1, nsmall=1))
+        outputDataFrame <- rbind(outputDataFrame, data.frame("time" = newDt, "value" = val))
+      }
+      
+      sum = as.numeric(dat$value[i])
+      sum = ifelse(!is.na(sum), sum, prevVal)
+      counter = 1
+      
+      #print(newDt)
       
     }
-    #dosomething(df[i,])
+    tmp = as.numeric(dat$value[i])
+    if (!is.na(tmp)) {  # prevVal will store the last value that could have been converted to float, nothing else we can do here
+      prevVal = tmp
+    }
   }
   
-  
+  result = outputDataFrame
+  write.csv(result, file = outCsvPath, row.names=FALSE, quote = FALSE)
   return(result)
 }
 
@@ -42,41 +72,18 @@ for(station in stations){
   typeOfMeasurment = list.files(subDir)
   for(measurement in typeOfMeasurment){
     subSubDir = paste(subDir,measurement,sep = "\\")
-    months = list.files(subSubDir)
+    months = list.files(subSubDir, include.dirs = FALSE)
     for(month in months){
       filePath = paste(subSubDir,month,sep="\\")
       
-      result <- produceHourlyResults(filePath, subSubDir)
+      if (file_test("-f", filePath)) {
+        print(paste("Processing file:", month))
+        result <- produceHourlyResults(filePath, subSubDir)
+        
+      } else {
+        print("Not a regular file, skipping")
+      }
       
-      print(filePath)
-      
-      
-      colnames(dat) <- c('time','timeDiscarded','value')
-      dat <- dat[ -c(2)]
-      dat$time <- as.POSIXct(paste(dat$time), format="%Y-%m-%d %H:%M:%S")
-      dat <- dat[!duplicated(dat),]
-      #dat$value[1] = dat$value[1]*2  #fake anomaly creation <- it works, yay
-      dat <- na.omit(dat)
-      bol = is.na(dat)
-      tryCatch(
-        {
-          res = AnomalyDetectionTs(dat, max_anoms=0.02, direction='both', plot=TRUE, na.rm = TRUE)
-          if (is.null(res$plot)){
-            # print("No anomalies detected, nothing to plot here")
-            # do something here, print is useless
-          } else {
-            fileName = paste(sapply(strsplit(filePath,split='\\',fixed=TRUE), tail, 1),".png", sep="")
-            path = paste(anomalyDir,fileName,sep="\\")
-            png(filename=path)
-            plot(res$plot + ylab(measurement) + scale_x_datetime(breaks = date_breaks("10 days"), labels=date_format("%Y-%m-%d"), limits=xlim))
-            dev.off()
-          }
-        }, error = function(e) {
-          message("Here's the original error message: ")
-          message(e)
-          message(paste("\nfor:", fileName)) 
-        }
-      )
     }
   }
 }
