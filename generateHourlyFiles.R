@@ -64,8 +64,9 @@ produceHourlyResults <- function(procFile, destDir) {
   return(result)
 }
 
+# this runs literally for like 10 hours
+
 dataDir = "C:\\Users\\kamil_000\\PycharmProjects\\MeteoAnalysis\\Data"
-#anomalyDir = paste(dataDir, "DetectedAnomalies", sep = "\\")
 stations = list.files(dataDir)
 for(station in stations){
   subDir = paste(dataDir,station,sep = "\\")

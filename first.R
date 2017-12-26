@@ -6,8 +6,7 @@ require(ggplot2)
 dataDir = "C:\\Users\\kamil_000\\PycharmProjects\\MeteoAnalysis\\Data"
 #anomalyDir = paste(dataDir, "DetectedAnomalies", sep = "\\")
 anomalyDir = "C:\\Users\\kamil_000\\PycharmProjects\\MeteoAnalysis\\DetectedAnomalies"
-#anomalyDir = paste(dataDir, "DetectedAnomalies", sep = "\\")
-anomalyDir = "C:\\Users\\kamil_000\\PycharmProjects\\MeteoAnalysis\\DetectedAnomalies"
+
 
 stations = list.files(dataDir)
 for(station in stations){
