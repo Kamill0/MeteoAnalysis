@@ -1,10 +1,10 @@
-produceHourlyResults <- function(dat, procFile, destDir) {
+produceHourlyResults <- function(dat) {
   outputDataFrame = setNames(data.frame(matrix(ncol = 2, nrow = 0)), c("time", "value"))
   
-  hourlyDir = paste(destDir, "hourlyR", sep = "\\")
-  createdDir = ifelse(!dir.exists(hourlyDir), dir.create(hourlyDir), FALSE)
-  outFileName = paste("h", sapply(strsplit(procFile,split='\\',fixed=TRUE), tail, 1), sep="_")
-  outCsvPath = paste(hourlyDir, outFileName, sep = "\\")
+  #hourlyDir = paste(destDir, "hourlyR", sep = "\\")
+  #createdDir = ifelse(!dir.exists(hourlyDir), dir.create(hourlyDir), FALSE)
+  #outFileName = paste("h", sapply(strsplit(procFile,split='\\',fixed=TRUE), tail, 1), sep="_")
+  #outCsvPath = paste(hourlyDir, outFileName, sep = "\\")
   
   # we are reading the first line from the file in order to set some variables:
   firstRow = dat[1,]
@@ -60,7 +60,26 @@ produceHourlyResults <- function(dat, procFile, destDir) {
 # This procedure takes a list of spark data frames, combines them into one (as separate partitions) and feeds 
 # them to the spark cluster for processing. Afterwards, the result is split and stored into CSV files
 executeAndWrite <- function(dat, destDir) {
-  print(length(dat))
+  partitionNo = length(dat)
+  inputDat = list()
+  
+  for (i in 1:partitionNo){
+    #print(typeof(dat[i]))
+    tmpDat = read.csv(file=dat[[i]], header = FALSE)
+    colnames(tmpDat) = c("time", "timeDiscarded", "value")
+    partitionCol = matrix(i, nrow = length(tmpDat$time), ncol = 1)
+    
+    singlePartitionDat = data.frame(tmpDat, partitionCol)
+    colnames(singlePartitionDat) = c("time", "timeDiscarded", "value", "partition")
+    
+    inputDat = rbind(inputDat, singlePartitionDat)
+  }
+  
+  df <- as.DataFrame(inputDat) # represent as Spark data frame
+  repartitionedDf <- repartition(df, partitionNo, col = df$partition)
+  
+  processedDf <- dapplyCollect(repartitionedDf, function(x) { x <- produceHourlyResults(x) })
+
 }
 
 initSparkSession <- function(driverMemory) {
@@ -90,21 +109,24 @@ for(station in stations){
     for(month in months){
       filePath = paste(subSubDir,month,sep="\\")
       if (file_test("-f", filePath)) {
-        print(paste("Processing file:", month))
+        #print(paste("Processing file:", month))
         len = length(dfList)
         if (len < numOfCores) {
           dfList[[len + 1]] <- filePath
         } else {
           # This means we have reached the parallel capacity and can now proceed with our batch
+          print("Processing batch no: TODO")
           executeAndWrite(dfList, subSubDir)
           dfList <- list(filePath)
         }
       } else {
+        
         print("Not a regular file, skipping")
       }
     }
     
     if (length(dfList) != 0) {# We have to send the last batch to spark (in case there is still something not processed)
+      print("Processing remaining batch: ")
       executeAndWrite(dfList, subSubDir)
     }
     
