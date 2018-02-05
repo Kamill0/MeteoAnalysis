@@ -1,6 +1,3 @@
-type_of_measurement <- c(23,21,22,4)
-names(type_of_measurement) <- c("pres0", "temp", "temp0", "winds")
-
 getFileName <- function(measurement, date) {
   year = format(date, "%Y")
   month = format(date, "%m")
@@ -15,7 +12,6 @@ getFileName <- function(measurement, date) {
 
 rootDir = "C:\\Users\\kamil_000\\PycharmProjects\\MeteoAnalysis"
 
-#a <- type_of_measurement["temp"]
 
 #parseFormattedFile <- function(measurement) {
   
@@ -24,14 +20,14 @@ rootDir = "C:\\Users\\kamil_000\\PycharmProjects\\MeteoAnalysis"
 
 calculateValue <- function(measurement, line) {
   if (startsWith(measurement, "temp0")) {
-    value = as.numeric((line$DEWP-32) * 5/9 )
+    value = as.numeric((as.numeric(line$DEWP)-32) * 5/9 )
     #value = ifelse(!is.na(sum), sum, prevVal)
   } else if (startsWith(measurement, "temp")) {
-    value = as.numeric((line$TEMP-32) * 5/9 )
+    value = as.numeric((as.numeric(line$TEMP)-32) * 5/9 )
   } else if (startsWith(measurement, "winds")) {
-    value = as.numeric(line$SPD * 0.44704)
+    value = as.numeric(as.numeric(line$SPD) * 0.44704)
   } else {
-    value = as.numeric(line$SLP)
+    value = as.numeric(as.numeric(line$SLP))
   }
  return(value) 
 }
@@ -87,23 +83,21 @@ for (i in 1:nrow(dat)){
     }
   } else {
     
+    outMeasurementPath = paste(outputPath, measurement, sep = "\\")
+    ifelse(!dir.exists(outMeasurementPath), dir.create(outMeasurementPath), FALSE)
+    outCsvPath = paste(outMeasurementPath, getFileName(measurement, prevDt), sep = "\\")
+    
+    result = outputDataFrame
+    write.table(result, file = outCsvPath, row.names=FALSE, col.names = FALSE, sep = ",", quote = FALSE)
+    
+    outputDataFrame = setNames(data.frame(matrix(ncol = 2, nrow = 0), stringsAsFactors = FALSE), c("time", "value"))
+    
     if (counter == 0) {
       outputDataFrame <- rbind(outputDataFrame, data.frame("time" = dt, "value" = 0))
     } else {
       val = as.numeric(format((as.numeric(sum) / as.numeric(counter)), digits=1, nsmall=1))
       outputDataFrame <- rbind(outputDataFrame, data.frame("time" = dt, "value" = val))
     }
-    
-    outMeasurementPath = paste(outputPath, measurement, sep = "\\")
-    ifelse(!dir.exists(outMeasurementPath), dir.create(outMeasurementPath), FALSE)
-    outCsvPath = paste(outMeasurementPath, getFileName(prevDt), sep = "\\")
-    
-    result = outputDataFrame
-    write.csv(result, file = outCsvPath, row.names=FALSE, quote = FALSE)
-    
-    outputDataFrame = setNames(data.frame(matrix(ncol = 2, nrow = 0), stringsAsFactors = FALSE), c("time", "value"))
-    
-    # TODO add current row here as first
     
     tmpVal = calculateValue(measurement, line)
     if (!is.na(tmpVal)) {
