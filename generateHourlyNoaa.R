@@ -13,13 +13,13 @@ getFileName <- function(measurement, date) {
 
 calculateValue <- function(measurement, line) {
   if (startsWith(measurement, "temp0")) {
-    value = as.numeric((as.numeric(line$DEWP)-32) * 5/9 )
+    value = as.numeric((as.numeric(as.character(line$DEWP))-32) * 5/9 )
   } else if (startsWith(measurement, "temp")) {
-    value = as.numeric((as.numeric(line$TEMP)-32) * 5/9 )
+    value = as.numeric((as.numeric(as.character(line$TEMP))-32) * 5/9 )
   } else if (startsWith(measurement, "winds")) {
-    value = as.numeric(as.numeric(line$SPD) * 0.44704)
+    value = as.numeric(as.numeric(as.character(line$SPD)) * 0.44704)
   } else {
-    value = as.numeric(as.numeric(line$SLP))
+    value = as.numeric(as.numeric(as.character(line$SLP)))
   }
  return(value) 
 }
@@ -111,7 +111,7 @@ outputPath = paste(rootDir, "DataNOAA\\processed", sep = "\\")
 inputPath = paste(rootDir, "DataNOAA\\source", sep = "\\")
 procFile = "2017_balice.txt"
 
-for(measurement in c("temp", "temp0", "winds", "pres0")){
+for(measurement in c("temp", "temp0", "pres0", "winds")){
   print(paste("Processing:", measurement))
   parseFormattedFile(measurement, procFile)
 }
