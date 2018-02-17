@@ -43,7 +43,7 @@ for(station in stations){
             res = AnomalyDetectionTs(dat, max_anoms=0.02, direction='both', plot=TRUE, na.rm = TRUE)
             
             csvfileName = sapply(strsplit(filePath,split='\\',fixed=TRUE), tail, 1)
-            pathCsv = paste(gsub("Data", "DataWithoutAnoms", subSubDir) ,paste("noAnoms",csvfileName,sep="_"),sep="\\")
+            pathCsv = paste(gsub("Data", "DataWithoutAnoms", subSubDir) ,csvfileName ,sep="\\")
             
             if (is.null(res$plot)){
               result <- dat
@@ -64,7 +64,7 @@ for(station in stations){
               result = dat[ !(dat$time %in% anomsDF$time),]
             }
             
-            write.csv(result, file = pathCsv, row.names=FALSE, quote = FALSE)
+            write.table(result, file = pathCsv, row.names=FALSE, col.names = FALSE, sep = ",", quote = FALSE)
             
           }, error = function(e) {
             message("Here's the original error message: ")

@@ -4,12 +4,18 @@ require(scales)
 
 produceHourlyResults <- function(procFile, destDir) {
   dat = read.csv(file=procFile, header = FALSE)
-  colnames(dat) = c("time", "timeDiscarded", "value")  
+  if (length(dat) == 3) {
+    colnames(dat) = c("time", "timeDiscarded", "value")
+  } else if (length(dat) == 2) {
+    colnames(dat) = c("time", "value")
+  } else {
+    print(paste("This is not a valid data file: ", procFile))
+  }
   
   outputDataFrame = setNames(data.frame(matrix(ncol = 2, nrow = 0)), c("time", "value"))
   
   
-  hourlyDir = paste(destDir, "hourlyR", sep = "\\")
+  hourlyDir = paste(destDir, "hourly", sep = "\\")
   createdDir = ifelse(!dir.exists(hourlyDir), dir.create(hourlyDir), FALSE)
   outFileName = paste("h", sapply(strsplit(procFile,split='\\',fixed=TRUE), tail, 1), sep="_")
   outCsvPath = paste(hourlyDir, outFileName, sep = "\\")
@@ -76,11 +82,12 @@ for(station in stations){
     months = list.files(subSubDir, include.dirs = FALSE)
     for(month in months){
       filePath = paste(subSubDir,month,sep="\\")
-      
       if (file_test("-f", filePath)) {
         print(paste("Processing file:", month))
         result <- produceHourlyResults(filePath, subSubDir)
-        
+
+        outputDataFrame <- rbind(outputDataFrame, data.frame("sql" = a), data.frame("sql" = b))
+  
       } else {
         print("Not a regular file, skipping")
       }

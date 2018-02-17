@@ -74,7 +74,7 @@ parseFormattedFile <- function(measurement, procFile) {
         
         outMeasurementPath = paste(outputPath, measurement, sep = "\\")
         ifelse(!dir.exists(outMeasurementPath), dir.create(outMeasurementPath), FALSE)
-        outCsvPath = paste(outMeasurementPath, getFileName(measurement, prevDt), sep = "\\")
+        outCsvPath = paste(paste(outMeasurementPath, getFileName(measurement, prevDt), sep = "\\"), "csv", sep = ".")
         
         result = outputDataFrame
         write.table(result, file = outCsvPath, row.names=FALSE, col.names = FALSE, sep = ",", quote = FALSE)
