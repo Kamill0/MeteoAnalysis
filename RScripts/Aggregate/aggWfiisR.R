@@ -55,12 +55,11 @@ produceHourlyResults <- function(procFile, destDir) {
       sum = as.numeric(dat$value[i])
       sum = ifelse(!is.na(sum), sum, prevVal)
       counter = 1
-      
-      #print(newDt)
+
       
     }
     tmp = as.numeric(dat$value[i])
-    if (!is.na(tmp)) {  # prevVal will store the last value that could have been converted to float, nothing else we can do here
+    if (!is.na(tmp)) {  # prevVal will store the last value that could have been converted to float,
       prevVal = tmp
     }
   }
@@ -70,7 +69,6 @@ produceHourlyResults <- function(procFile, destDir) {
   return(result)
 }
 
-# this runs literally for like 10 hours
 
 dataDir = "C:\\Users\\kamil_000\\PycharmProjects\\MeteoAnalysis\\Data"
 stations = list.files(dataDir)
