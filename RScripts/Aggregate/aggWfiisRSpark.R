@@ -59,11 +59,9 @@ produceHourlyResults <- function(dat) {
 # This procedure takes a list of spark data frames, combines them into one (as separate partitions) and feeds 
 # them to the spark cluster for processing. Afterwards, the result is split and stored into CSV files
 executeAndWrite <- function(station, measurement, dat, destDir) {
-  if (!is.element(measurement, tableNames(station))) {
+  if (1){#!is.element(measurement, tableNames(station))) {
     hourlyDir = paste(destDir, "hourlyR", sep = "\\")
     createdDir = ifelse(!dir.exists(hourlyDir), dir.create(hourlyDir), FALSE)
-  
-    
     
     partitionNo = length(dat)
     inputDat = list()
@@ -77,23 +75,21 @@ executeAndWrite <- function(station, measurement, dat, destDir) {
       month = format(dt1, "%m")
       
       partitionCol = matrix(i-1, nrow = length(tmpDat$time), ncol = 1)
-      
       singlePartitionDat = data.frame(tmpDat, partitionCol, stringsAsFactors = FALSE)
-      
       colnames(singlePartitionDat) = c("time", "timeDiscarded", "value", "partition")
-      
       inputDat = rbind(inputDat, singlePartitionDat)
     }
 
     
     df <- createDataFrame(inputDat) # represent as Spark data frame
-
-    schema <- structType(structField("time", "timestamp"), structField("value", "double"), structField("partition", "double"))
-
-    processedDf <- gapply(df, "partition", function(key, x) { data.frame(produceHourlyResults(x), stringsAsFactors = FALSE) }, schema)
+    schema <- structType(structField("time", "timestamp"), 
+                         structField("value", "double"), 
+                         structField("partition", "double"))
+    processedDf <- gapply(df, "partition", function(key, x) { 
+      data.frame(produceHourlyResults(x), stringsAsFactors = FALSE) }, schema)
     
     processedDf %>% createOrReplaceTempView("data_temp")
-    
+
     sql(paste("DROP TABLE IF EXISTS", measurement))
     sql(paste("CREATE TABLE", measurement ,"USING csv PARTITIONED BY(partition) AS SELECT * FROM data_temp"))
 
@@ -110,25 +106,28 @@ initSparkSession <- function(driverMemory) {
   library(SparkR)
 
   
-  sc <- sparkR.session(master="local[*]", 
-                       enableHiveSupport = TRUE,  
-                       sparkConfig = list(spark.sql.shuffle.partitions="4",
-                                          spark.sql.warehouse.dir = "C:\\Users\\kamil_000\\PycharmProjects\\MeteoAnalysis\\Data\\s000\\humi\\hourlyR"))
+  sc <- sparkR.session(
+    master="local[*]", 
+    enableHiveSupport = TRUE,  
+    sparkConfig = 
+      list(spark.sql.shuffle.partitions="4",
+          spark.sql.warehouse.dir = "C:\\Users\\kamil_000\\PycharmProjects\\MeteoAnalysis\\DataSpark")
+    )
   
 
   library(magrittr)
-  #sql("CREATE DATABASE IF NOT EXISTS METEO")
-  #sql("USE METEO")
   
   return(sc)
 }
 
-start.time <- Sys.time()
+
 
 numOfCores = 4 # This is environment dependant, should probably be stored somewhere (a prop file?)
 sc <-initSparkSession("4g")
 
-options(stringsAsFactors = FALSE) #this is a global setting for this shit
+start.time <- Sys.time()
+
+options(stringsAsFactors = FALSE) 
 
 dataDir = "C:\\Users\\kamil_000\\PycharmProjects\\MeteoAnalysis\\Data"
 stations = list.files(dataDir)
@@ -156,13 +155,12 @@ for(station in stations){
         } else {
           # This means we have reached the parallel capacity and can now proceed with our batch
           print(paste("Processing batch:", station, measurement, "of size" ,length(dfList)))
-          dupa2 <- executeAndWrite(station, measurement, dfList, subSubDir)
+          executeAndWrite(station, measurement, dfList, subSubDir)
           
           end.time <- Sys.time()
           time.taken <- end.time - start.time
           print(time.taken)
           
-          #stop("!!!")
           
           dfList <- list(filePath)
         }
