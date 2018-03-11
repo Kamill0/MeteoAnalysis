@@ -15,6 +15,8 @@ compareWeatherModels <- function(fileName, noaaPath, wfiisAnomsPath, wfiisNoAnom
   noaaDF = read.csv(file=noaaPath, header = FALSE)
   colnames(noaaDF) <- c('time','value')
   
+  print(noaaDF$value)
+  
   wfiisNoAnomsDF$time <- as.character(wfiisNoAnomsDF$time)
   wfiisAnomsDF$time <- as.character(wfiisAnomsDF$time)
   noaaDF$time <- as.character(noaaDF$time)
@@ -25,6 +27,8 @@ compareWeatherModels <- function(fileName, noaaPath, wfiisAnomsPath, wfiisNoAnom
   
   refNoAnoms = as.numeric(as.character(unlist(mergedNoAnoms[3])))
   refAnoms = as.numeric(as.character(unlist(mergedAnoms[3])))
+  
+  print(refNoAnoms)
   
   modelNoAnoms = as.numeric(as.character(unlist(mergedNoAnoms[2])))
   modelAnoms = as.numeric(as.character(unlist(mergedAnoms[2])))
@@ -72,9 +76,10 @@ compareWeatherModels <- function(fileName, noaaPath, wfiisAnomsPath, wfiisNoAnom
                  font=5,
                  lty=3)  
   
-  model.names <- c("Anoms","NoAnoms")
-  model.colors <- c("red", "blue")
-  legend("topright", model.names, pch=19, col=model.colors , cex=1.0, bty="n", ncol=1, xpd = TRUE)
+  model.names <- c("Data with anomalies","Data without anomalies","NOAA model")
+  model.colors <- c("red", "blue", "darkgreen")
+  model.pch <- c(19,19,15)
+  legend("topright", model.names, pch=model.pch, col=model.colors , cex=1.0, bty="n", ncol=1, xpd = TRUE)
   
   dev.off()
 }
@@ -108,7 +113,7 @@ for(measurement in measurements){
      
      
      compareWeatherModels(month, noaaPath, matchingResultAnoms, matchingResultNoAnoms)
-     #stop("!!!")
+     stop("!!!")
    } else {
      print(paste("There was no match in WFiiS data records for Noaa file:", month, "- skipping"))
    }
